@@ -1,4 +1,19 @@
-#include <Math.h>
+/*
+if you are going with the low side shunt option you need to change this:
+[6:35 PM]
+//This triggers twice per PWM cycle:
+  FLEXPWM2_SM0TCTRL = FLEXPWM_SMTCTRL_OUT_TRIG_EN(1 << 4) | FLEXPWM_SMTCTRL_OUT_TRIG_EN(1 << 5); //  val 4 of Flexpwm sm0 as trigger; #define FLEXPWM_SMTCTRL_OUT_TRIG_EN(n)   ((uint16_t)(((n) & 0x3F) << 0))
+  //This triggers once per PWM cycle:
+  //FLEXPWM2_SM0TCTRL = FLEXPWM_SMTCTRL_OUT_TRIG_EN(1 << 5); //  val 4 of Flexpwm sm0 as trigger; #define FLEXPWM_SMTCTRL_OUT_TRIG_EN(n)   ((uint16_t)(((n) & 0x3F) << 0))
+
+*/
+
+// #define DRIVER_1
+// #define DRIVER_2
+#define DRV8302
+// #define LOWSIDE_CURRENT_SENSE
+
+#include <math.h>
 #include <arm_math.h>
 #include <SPI.h>
 
@@ -38,9 +53,9 @@ void initparams( motor_total_t* m ) {
 
 void initmotor( mot_conf_t* m , mot_state_t* state ) {
   m->maxDutyCycle = 0.99;
-  m->adc2A = 1 / 0.09; //With linear hal current sensors ACS711 (31A or 15.5A): These allow for 2 measurements per PWM cycle
+  m->adc2A = 9.393; //With linear hal current sensors ACS711 (31A or 15.5A): These allow for 2 measurements per PWM cycle
 
-  m->enccountperrev = 20000;
+  m->enccountperrev = 4096;
   m->enc2rad = 2 * M_PI / m->enccountperrev;
   m->I_max = 15; //Max current (peak of the sine wave in a phase)
   m->max_edeltarad = 0.25f * M_PI;
@@ -50,7 +65,7 @@ void initmotor( mot_conf_t* m , mot_state_t* state ) {
   m->T_max = 1;
 
   //Motor parameters
-  m->N_pp = 4; //Number of pole pairs
+  m->N_pp = 7; //Number of pole pairs
   m->Ld = 10e-3; //[Henry] Ld induction: phase-zero
   m->Lq = 10e-3; //[Henry] Lq induction: phase-zero
   m->Lambda_m = 0.01; //[Weber] Note: on the fly changes of Kt do not adjust this value!
@@ -68,13 +83,19 @@ void setup() {
 
   pinMode( ENGATE , OUTPUT);
   digitalWrite( ENGATE , 1); // To be updated!
-  SPI_init( SSPIN );  // Only for DRV8301.
+  #ifdef DRIVER_1
+    SPI_init( SSPIN );  // Only for DRV8301.
+  #endif
 
   pinMode( ENGATE2 , OUTPUT);
   digitalWrite( ENGATE2 , 1); // To be updated!
-  SPI_init( SSPIN2 );  // Only for DRV8301.
+  #ifdef DRIVER_2
+    SPI_init( SSPIN2 );  // Only for DRV8301.
+  #endif
 
-  //DRV8302_init( SSPIN2 , 13 ); // Note: pin 13 is also the SCLK pin for communication with DRV8301 and the LED.
+  #ifdef DRV8302
+    DRV8302_init( SSPIN , 13 ); // Note: pin 13 is also the SCLK pin for communication with DRV8301 and the LED.
+  #endif
   xbar_init();
   adc_init();
   adc_etc_init();
@@ -244,9 +265,13 @@ void flexpwm2_init() {     //set PWM
   FLEXPWM2_MCTRL |= FLEXPWM_MCTRL_LDOK( 7 );// Load Okay LDOK(SM) -> reload setting again
 
   //This triggers twice per PWM cycle:
-  FLEXPWM2_SM0TCTRL = FLEXPWM_SMTCTRL_OUT_TRIG_EN(1 << 4) | FLEXPWM_SMTCTRL_OUT_TRIG_EN(1 << 5); //  val 4 of Flexpwm sm0 as trigger; #define FLEXPWM_SMTCTRL_OUT_TRIG_EN(n)   ((uint16_t)(((n) & 0x3F) << 0))
+  #ifndef LOWSIDE_CURRENT_SENSE
+    FLEXPWM2_SM0TCTRL = FLEXPWM_SMTCTRL_OUT_TRIG_EN(1 << 4) | FLEXPWM_SMTCTRL_OUT_TRIG_EN(1 << 5); //  val 4 of Flexpwm sm0 as trigger; #define FLEXPWM_SMTCTRL_OUT_TRIG_EN(n)   ((uint16_t)(((n) & 0x3F) << 0))
+  #endif
   //This triggers once per PWM cycle:
-  //FLEXPWM2_SM0TCTRL = FLEXPWM_SMTCTRL_OUT_TRIG_EN(1 << 5); //  val 4 of Flexpwm sm0 as trigger; #define FLEXPWM_SMTCTRL_OUT_TRIG_EN(n)   ((uint16_t)(((n) & 0x3F) << 0))
+  #ifdef LOWSIDE_CURRENT_SENSE
+    FLEXPWM2_SM0TCTRL = FLEXPWM_SMTCTRL_OUT_TRIG_EN(1 << 5); //  val 4 of Flexpwm sm0 as trigger; #define FLEXPWM_SMTCTRL_OUT_TRIG_EN(n)   ((uint16_t)(((n) & 0x3F) << 0))
+  #endif
 
   *(portConfigRegister(4)) = 1; //Set port 4 to the right mux value (found in pwm.c)
   *(portConfigRegister(5)) = 1; //Set port 5 to the right mux value (found in pwm.c)
@@ -318,7 +343,7 @@ void Encoders_init() {
   Encoder1.setInitConfig();
   Encoder1.EncConfig.filterCount = 3; //Bit of filtering to avoid spurious triggering.
   Encoder1.EncConfig.filterSamplePeriod = 3; //Bit of filtering to avoid spurious triggering.
-  Encoder1.EncConfig.INDEXTriggerMode  = 1;
+  Encoder1.EncConfig.INDEXTriggerMode  = 2;
   Encoder1.EncConfig.IndexTrigger  = 1;
   Encoder1.EncConfig.positionInitialValue = 0;
   Encoder1.init();
@@ -400,7 +425,7 @@ void adcetc1_isr() {
   //    //    digitalWrite( CHOPPERPIN , LOW);
   //  }
 
-  if ( motor.state.sensBus > 45 or motor.state.sensBus2 > 45 ) {
+  if ( motor.state.sensBus > 45 ) {
     error(41 , &motor.state1);
   }
   if ( motor.state.sensBus2 > 45  ) {
@@ -753,14 +778,24 @@ void Transforms( mot_conf_t* confX , mot_state_t* stateX , Biquad **BiquadsX)
     if (stateX->hfi_V != stateX->hfi_prev) {
       stateX->hfi_V_act = stateX->hfi_prev + (stateX->hfi_V - stateX->hfi_prev) / 2;
     }
+  #ifndef LOWSIDE_CURRENT_SENSE
     if (motor.state.is_v7) {
+  #else
+    if (motor.state.hfi_high) {
+  #endif
       stateX->hfi_Id_meas_high = stateX->Id_meas;
       stateX->hfi_Iq_meas_high = stateX->Iq_meas;
+      #ifdef LOWSIDE_CURRENT_SENSE
+        motor.state.hfi_high = 0;
+      #endif
     }
     else {
       stateX->hfi_V_act = -stateX->hfi_V_act;
       stateX->hfi_Id_meas_low = stateX->Id_meas;
       stateX->hfi_Iq_meas_low = stateX->Iq_meas;
+      #ifdef LOWSIDE_CURRENT_SENSE
+        motor.state.hfi_high = 1;
+      #endif
     }
     stateX->delta_id = stateX->hfi_Id_meas_high - stateX->hfi_Id_meas_low;
     stateX->delta_iq = stateX->hfi_Iq_meas_high - stateX->hfi_Iq_meas_low;
@@ -773,17 +808,16 @@ void Transforms( mot_conf_t* confX , mot_state_t* stateX , Biquad **BiquadsX)
       stateX->compensation = 0;
     }
 
-    //stateX->hfi_curangleest = 0.25f * atan2( -stateX->delta_iq  , stateX->delta_id - 0.5 * stateX->hfi_V * motor.conf.T * ( 1 / Ld + 1 / Lq ) ); //Complete calculation (not needed because error is always small due to feedback). 0.25 comes from 0.5 because delta signals are used and 0.5 due to 2theta (not just theta) being in the sin and cos wave.
     if (stateX->hfi_method == 1 || stateX->hfi_method == 3 ) {
       stateX->hfi_curangleest =  0.5f * stateX->delta_iq / (stateX->hfi_V * motor.conf.T * ( 1 / confX->Lq - 1 / confX->Ld ) ); //0.5 because delta_iq is twice the iq value
-    }
-    else if (stateX->hfi_method == 2 || stateX->hfi_method == 4) {
+    } else if (stateX->hfi_method == 2 || stateX->hfi_method == 4) {
       if (motor.state.is_v7) {
         stateX->hfi_curangleest =  (stateX->Iq_meas - stateX->Iq_SP) / (stateX->hfi_V * motor.conf.T * ( 1 / confX->Lq - 1 / confX->Ld ) );
-      }
-      else {
+      } else {
         stateX->hfi_curangleest =  (stateX->Iq_meas - stateX->Iq_SP) / (-stateX->hfi_V * motor.conf.T * ( 1 / confX->Lq - 1 / confX->Ld ) );
       }
+    } else if (stateX->hfi_method == 5) {
+          stateX->hfi_curangleest = 0.25f * atan2( -stateX->delta_iq  , stateX->delta_id - 0.5 * stateX->hfi_V * motor.conf.T * ( 1 / confX->Lq + 1 / confX->Ld ) ); //Complete calculation (not needed because error is always small due to feedback). 0.25 comes from 0.5 because delta signals are used and 0.5 due to 2theta (not just theta) being in the sin and cos wave.
     }
     if (stateX->hfi_use_lowpass) {
       LOWPASS( stateX->hfi_error , -stateX->hfi_curangleest , 0.19); //Negative feedback and lowpass (0.19 gives 2000 Hz at 60 kHz sampling: c = 1 - exp(-2000*2*pi*1/60000))
@@ -792,7 +826,7 @@ void Transforms( mot_conf_t* confX , mot_state_t* stateX , Biquad **BiquadsX)
     {
       stateX->hfi_error = -stateX->hfi_curangleest; //Negative feedback
     }
-    stateX->hfi_dir_int += motor.conf.T * stateX->hfi_error * stateX->hfi_gain_int2; //This the the double integrator
+    stateX->hfi_dir_int += motor.conf.T * stateX->hfi_error * stateX->hfi_gain_int2; //This the the double integrator - Roughly equivalent to the integral term in the PI controller
 
     stateX->hfi_contout += stateX->hfi_gain * motor.conf.T * stateX->hfi_error + stateX->hfi_dir_int; //This is the integrator and the double integrator
     if (stateX->hfi_method == 3 || stateX->hfi_method == 4) {
@@ -1357,10 +1391,12 @@ static inline void truncate_number_abs(float *number, float max) {
 }
 
 void error( int ierror ,  mot_state_t* stateX ) {
-  motor.state1.OutputOn = false;
-  motor.state2.OutputOn = false;
-  digitalWrite( ENGATE , 0);
-  digitalWrite( ENGATE2 , 0);
+  stateX->OutputOn = false;
+  if (stateX == &motor.state1) {
+    digitalWrite( ENGATE , 0);
+  } else {
+    digitalWrite( ENGATE2 , 0);
+  }
   if (motor.state.firsterror == 0) {
     motor.state.firsterror = ierror;
     stateX->firsterror = ierror;

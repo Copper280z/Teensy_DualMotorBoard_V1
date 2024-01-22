@@ -31,8 +31,8 @@ z = ct.TransferFunction( [1, 0] , [1] , float(m.Ts))
 # Run code till here, and you will have the m and motor objects to work with 
 
 # %%
-Lq = 250e-6
-Ld = 210e-6
+Lq = 230e-6
+Ld = 220e-6
 R = 0.33
 
 m.CL_cur( 0 )
@@ -70,7 +70,7 @@ motor.conf2.Lq = Lq
 motor.conf2.Ld = Ld
 motor.state2.R = R
 
-CL_cur( 1.5e3 )
+m.CL_cur( 1.5e3 )
 
 
 # %%
@@ -82,57 +82,57 @@ df.plot()
 
 # %% Trampa 160KV
 #Rotate by hand first
-Ld = 19e-6
-Lq = 34e-6
-R = 0.035
-m.setpar('motor.conf2.Lambda_m', 0.005405)
-m.setpar('motor.conf2.N_pp',  7)
-m.setpar('motor.conf2.Lq', Lq)
-m.setpar('motor.conf2.Ld', Ld)
-m.setpar('motor.state2.R', R)
+Lq = 230e-6
+Ld = 220e-6
+R = 0.8
+m.setpar('motor.conf1.Lambda_m', 0.005405)
+m.setpar('motor.conf1.N_pp',  4)
+m.setpar('motor.conf1.Lq', Lq)
+m.setpar('motor.conf1.Ld', Ld)
+m.setpar('motor.state1.R', R)
 
-m.setpar('motor.conf2.commutationoffset', 0)
+m.setpar('motor.conf1.commutationoffset', 0)
 
-m.setpar('motor.state2.Valpha_offset', 0.5)
+m.setpar('motor.state1.Valpha_offset', 0.5)
 time.sleep(0.5)
-Valpha1 = m.getsig('motor.state2.Valpha_offset')
-Ialpha1 = m.getsig('motor.state2.Ialpha')
-Ibeta1 = m.getsig('motor.state2.Ibeta')
-Ia1 = m.getsig('motor.state2.ia')
+Valpha1 = m.getsig('motor.state1.Valpha_offset')
+Ialpha1 = m.getsig('motor.state1.Ialpha')
+Ibeta1 = m.getsig('motor.state1.Ibeta')
+Ia1 = m.getsig('motor.state1.ia')
 bus1 = m.getsig('motor.state.sensBus_lp')
 
 m.setpar('motor.state2.Valpha_offset', 1)
 
 time.sleep(1)
-Valpha2 = m.getsig('motor.state2.Valpha_offset')
-Va = m.getsig('motor.state2.Va')
-Vb = m.getsig('motor.state2.Vb')
-Ialpha2 = m.getsig('motor.state2.Ialpha')
-Ibeta2 = m.getsig('motor.state2.Ibeta')
+Valpha2 = m.getsig('motor.state1.Valpha_offset')
+Va = m.getsig('motor.state1.Va')
+Vb = m.getsig('motor.state1.Vb')
+Ialpha2 = m.getsig('motor.state1.Ialpha')
+Ibeta2 = m.getsig('motor.state1.Ibeta')
 bus2 = m.getsig('motor.state.sensBus')
-Ia2 = m.getsig('motor.state2.ia')
-m.setpar('motor.state2.Valpha_offset', 0)
+Ia2 = m.getsig('motor.state1.ia')
+m.setpar('motor.state1.Valpha_offset', 0)
 
 R = (Valpha2 - Valpha1) / (Ialpha2 - Ialpha1)
 
-offset = m.getsig('motor.state2.thetaPark_enc')
+offset = m.getsig('motor.state1.thetaPark_enc')
 
-m.setpar('motor.conf2.commutationoffset', -offset)
+m.setpar('motor.conf1.commutationoffset', -offset)
 
-thetaPark = m.getsig('motor.state2.thetaPark')
+thetaPark = m.getsig('motor.state1.thetaPark')
 
 # %%
 m.setTrace(['s.sens1' , 's.sens2' , 's.sens3' , 's.sens4' , 's.sensBus' , 's.sensBus2' ])
 df = m.trace(0.1)
 
 plt.figure(1)
-fftpsd( df['motor.state.sens1'])
+m.fftpsd( df['motor.state.sens1'])
 plt.figure(2)
-fftpsd( df['motor.state.sens2'])
+m.fftpsd( df['motor.state.sens2'])
 plt.figure(3)
-fftpsd( df['motor.state.sens3'])
+m.fftpsd( df['motor.state.sens3'])
 plt.figure(4)
-fftpsd( df['motor.state.sens4'])
+m.fftpsd( df['motor.state.sens4'])
 
 
 # %%
@@ -245,30 +245,30 @@ m.setpar('motor.state1.Iq_offset_SP', 0)
 
 
 # %% Enable hfi 1
-Ld = 19e-6
-Lq = 34e-6
-R = 0.035
+Lq = 230e-6
+Ld = 220e-6
+R = 0.8
 m.setpar('motor.conf1.Lambda_m', 0.005405)
-m.setpar('motor.conf1.N_pp',  7)
+m.setpar('motor.conf1.N_pp',  4)
 m.setpar('motor.conf1.Lq', Lq)
 m.setpar('motor.conf1.Ld', Ld)
 m.setpar('motor.state1.R', R)
 
-m.CL_cur( 2e3 , 1)
+m.CL_cur( 1.5e3 , 1)
 
-m.setpar('s1.Id_offset_SP', 5)
+m.setpar('s1.Id_offset_SP', 1)
 time.sleep(0.5)
 m.setpar('s1.Id_offset_SP', 0)
 
-m.setpar('s1.hfi_use_lowpass', 1)
+m.setpar('s1.hfi_use_lowpass', 0)
 m.setpar('s1.hfi_method', 1)
 
 Ki = 500*2*pi
-hfi_v = 3
+hfi_v = 15
 
 m.setpar('s1.hfi_maxvel', 1e6)
 m.setpar('s1.hfi_gain', Ki)
-m.setpar('s1.hfi_gain_int2', 5*2*pi)
+m.setpar('s1.hfi_gain_int2', 5*2*pi) # 5*2*pi
 m.setpar('s1.hfi_V', hfi_v)
 m.setpar('s1.hfi_on', 1)
 m.setpar('c1.anglechoice', 3)
@@ -323,7 +323,7 @@ df.plot()
 
 # %%
 signals = m.setTrace(['motor.state1.Ialpha', 'motor.state1.Ibeta', 'motor.state.sensBus',
-                   'motor.state.curtime', 'motor.state1.Va', 'motor.state1.Vb', 'motor.state1.Vc'])
+                      'motor.state1.Va', 'motor.state1.Vb', 'motor.state1.Vc'])
 df = m.trace(1)
 df.plot()
 
@@ -467,6 +467,8 @@ m.setTrace(signals )
 
 
 gain = 0.5
+# m.setpar('motor.state1.Valpha_offset', 0)
+# time.sleep(0.5)
 m.setpar('motor.state1.Vq_distgain', 1)
 m.setpar('motor.state1.Vd_distgain', 1)
 m.setpar('motor.state1.Iq_distgain', 0)
@@ -477,11 +479,12 @@ m.setpar('motor.conf.NdownsamplePRBS', NdownsamplePRBS)  # Downsampling
 m.setpar('motor.state1.distval', gain)  # disturbance amplitude
 m.setpar('motor.state1.distoff', 0)  # disturbance offset
 df = m.trace(N * m.Ts)
+# m.setpar('motor.state1.Valpha_offset', 0)
 m.setpar('motor.state1.distval', 0)  # disturbance amplitude
 m.setpar('motor.state1.distoff', 0)  # disturbance offset
 m.setpar('motor.conf.NdownsamplePRBS', 1)  # Downsampling
 
-dfout = getFFTdf(df, NdownsamplePRBS , 10*2047 )
+dfout = m.getFFTdf(df, NdownsamplePRBS , 10*2047 )
 f = dfout.index.values
 Pd = dfout['motor.state1.Id_meas'].values / dfout['motor.state1.Vd'].values
 Pq = dfout['motor.state1.Iq_meas'].values / dfout['motor.state1.Vq'].values
@@ -512,7 +515,7 @@ m.setpar('motor.state2.distval', 0)  # disturbance amplitude
 m.setpar('motor.state2.distoff', 0)  # disturbance offset
 m.setpar('motor.conf.NdownsamplePRBS', 1)  # Downsampling
 
-dfout = getFFTdf(df, NdownsamplePRBS , 10*2047 )
+dfout = m.getFFTdf(df, NdownsamplePRBS , 10*2047 )
 f = dfout.index.values
 Pd = dfout['motor.state2.Id_meas'].values / dfout['motor.state2.Vd'].values
 Pq = dfout['motor.state2.Iq_meas'].values / dfout['motor.state2.Vq'].values
@@ -521,28 +524,28 @@ Sq = dfout['motor.state2.Vq'].values
 
 # %% Current loop plots
 plt.figure(1)
-bode( Pd , f, 'Measured D axis plant')
-bode( Pq , f, 'Measured Q axis plant')
+m.bode( Pd , f, 'Measured D axis plant')
+m.bode( Pq , f, 'Measured Q axis plant')
 
 plt.figure(2)
-bode( 1 / Sd - 1 , f, 'Open loop D')
-bode( 1 / Sq - 1 , f, 'Open loop Q')
+m.bode( 1 / Sd - 1 , f, 'Open loop D')
+m.bode( 1 / Sq - 1 , f, 'Open loop Q')
 
-plt.figure(6)
-bode( (1 / Sd - 1)/Pd , f, 'Controller D')
-bode( (1 / Sq - 1)/Pq , f, 'Controller Q')
+# plt.figure(6)
+# m.bode( (1 / Sd - 1)/Pd , f, 'Controller D')
+# m.bode( (1 / Sq - 1)/Pq , f, 'Controller Q')
 
 
-plt.figure(3)
-nyquist( 1 / Sd - 1 , f, 'Open loop D')
-nyquist( 1 / Sq - 1 , f, 'Open loop Q')
+# plt.figure(3)
+# m.nyquist( 1 / Sd - 1 , f, 'Open loop D')
+# m.nyquist( 1 / Sq - 1 , f, 'Open loop Q')
 
 plt.figure(4)
 plt.plot(
     f, np.abs(1/(Pd * f * 2 * np.pi)) * 1e6)
 plt.grid()
 plt.xlim([1e3, 10e3])
-# plt.ylim([ 100 , 300])
+plt.ylim([ 100 , 500])
 plt.title('Ld [uH]')
 
 
@@ -551,9 +554,16 @@ plt.plot(
     f, np.abs(1/(Pq * f * 2 * np.pi)) * 1e6)
 plt.grid()
 plt.xlim([1e3, 10e3])
-# plt.ylim([ 100 , 300])
+plt.ylim([ 100 , 500])
 plt.title('Lq [uH]')
 
+plt.figure(7)
+plt.plot(
+    f, (np.abs(1/(Pd * f * 2 * np.pi))) / np.abs(1/(Pq * f * 2 * np.pi)) )
+plt.grid()
+plt.xlim([1e3, 10e3])
+# plt.ylim([ 100 , 300])
+plt.title('Ld/Lq ')
 
 # %% Open loop identification
 NdownsamplePRBS = 10
@@ -580,15 +590,15 @@ m.setpar('motor.state1.distoff', 0)  # disturbance offset
 m.setpar('motor.conf.NdownsamplePRBS', 1)  # Downsampling
 
 
-dfout = getFFTdf(df, NdownsamplePRBS , 10*2047 )
+dfout = m.getFFTdf(df, NdownsamplePRBS , 10*2047 )
 f = dfout.index.values
 
 plt.figure(1)
-bode( -dfout['motor.state1.emech'] , f, 'Measured plant')
+m.bode( -dfout['motor.state1.emech'] , f, 'Measured plant')
 
 
 plt.figure(2)
-bode( 1/(-dfout['motor.state1.emech'] * (2*pi*f)**2) , f, 'Measured inertia')
+m.bode( 1/(-dfout['motor.state1.emech'] * (2*pi*f)**2) , f, 'Measured inertia')
 
 
 # %% Open loop identification motor 2
@@ -628,10 +638,10 @@ bode( 1/(-dfout['motor.state2.emech'] * (2*pi*f)**2) , f, 'Measured inertia')
 
 
 # %% set Lowpass and Notches 1
-setLowpass( 1 , 0, 1200, 0.7 )
-setNotch( 1 , 1, 200, 0, 0.1 )
-setNotch( 1 , 2, 590, -20, 0.1 )
-setNotch( 1 , 3, 700, 0, 0.1 )
+m.setLowpass( 1 , 0, 1200, 0.7 )
+m.setNotch( 1 , 1, 200, 0, 0.1 )
+m.setNotch( 1 , 2, 590, -20, 0.1 )
+m.setNotch( 1 , 3, 700, 0, 0.1 )
 
 # %% Closed loop identification 1
 m.setpar('motor.state1.offsetVel' ,  100 )
@@ -644,7 +654,7 @@ N = (Nwait+Naver)*NdownsamplePRBS*2047
 signals = ['motor.state1.Id_meas', 'motor.state1.Iq_meas',
            'motor.state1.dist', 'motor.state1.emech' , 'motor.state1.mechcontout' , 'motor.state1.Iq_SP']
 m.setTrace(signals )
-
+ 
 
 gain = 0.10
 m.setpar('motor.state1.Vq_distgain', 0)
@@ -776,12 +786,11 @@ m.setpar('motor.state1.i_vector_radpers', 0)
 m.setpar('motor.state1.i_vector_acc', 1e8)
 
 df.filter(regex='BEMF').plot()
-
-# %% Debug HFI
+# %% Test HFI suitability
 m.setpar('s1.hfi_method', 1)
 
 Ki = 1000*2*pi
-hfi_v = 12
+hfi_v = 2
 
 m.setpar('s1.hfi_maxvel', 1e6)
 m.setpar('s1.hfi_gain', Ki)
@@ -790,7 +799,42 @@ m.setpar('s1.hfi_V', hfi_v)
 m.setpar('s1.hfi_on', 1)
 
 m.setpar('motor.conf1.anglechoice', 101)
-m.setpar('motor.state1.Iq_offset_SP',5)
+m.setpar('motor.state1.Iq_offset_SP',0)
+
+
+# m.setpar('motor.state1.thetaPark', 0)
+
+# vmax = 500  # ERPM
+# m.setpar('motor.conf1.anglechoice', 99)
+# m.setpar('motor.state1.i_vector_acc', 100000)
+# m.setpar('motor.state1.i_vector_radpers', vmax / 60 * 2*pi)
+
+signals = ['motor.state1.BEMFa', 'motor.state1.BEMFb', 'motor.state.sensBus', 'motor.state1.Iq_meas', 'motor.state1.Id_meas',  'motor.state1.Id_e', 'motor.state1.Iq_e', 's1.delta_id', 's1.delta_iq', 'motor.state1.thetaPark' , 'motor.state1.thetaPark_enc', 'motor.state.is_v7']
+m.setTrace(signals)
+
+df = m.trace(2)
+
+m.setpar('s1.hfi_on', 0)
+m.setpar('motor.conf1.anglechoice', 0)
+m.setpar('motor.state1.Iq_offset_SP',0)
+
+df.filter(regex='delta').rolling(50).mean().plot()
+
+# %% Debug HFI
+m.setpar('s1.hfi_method', 1)
+
+Ki = 1000*2*pi
+hfi_v = 1.5
+
+m.setpar('s1.hfi_maxvel', 1e6)
+m.setpar('s1.hfi_gain', Ki)
+m.setpar('s1.hfi_gain_int2', 5*2*pi)
+m.setpar('s1.hfi_V', hfi_v)
+m.setpar('s1.hfi_on', 1)
+
+m.setpar('motor.conf1.anglechoice', 101)
+m.setpar('motor.state1.Iq_offset_SP',1)
+m.setpar('motor.state1.Id_offset_SP',0.0)
 
 time.sleep(2)
 
@@ -814,11 +858,11 @@ m.setpar('motor.state1.Iq_offset_SP',0)
 # df.filter(regex='delta').rolling(50).mean().plot()
 # df.filter(regex='motor.state1.thetaPark_enc').plot()
 
-id = df['s1.delta_id'].rolling(100).mean()
-iq = df['s1.delta_iq'].rolling(100).mean()
+id = df['motor.state1.delta_id'].rolling(100).mean()
+iq = df['motor.state1.delta_iq'].rolling(100).mean()
 
-idmean = df['s1.delta_id'].mean()
-iqmean = df['s1.delta_iq'].mean()
+idmean = df['motor.state1.delta_id'].mean()
+iqmean = df['motor.state1.delta_iq'].mean()
 
 print(idmean  )
 print( iqmean )
@@ -829,14 +873,16 @@ print( iqmean )
 # df.plot()
 
 h = plt.figure(2)
-plt.plot( (df['motor.state1.thetaPark_enc'].rolling(1).mean()*360/2/np.pi) , df['s1.delta_id'].rolling(100).mean() )
-plt.plot((df['motor.state1.thetaPark_enc'].rolling(1).mean()*360/2/np.pi) , df['s1.delta_iq'].rolling(100).mean()  )
+# plt.plot( (df['motor.state1.thetaPark_enc'].rolling(1).mean()*360/2/np.pi) , df['motor.state1.delta_id'].rolling(100).mean() )
+# plt.plot((df['motor.state1.thetaPark_enc'].rolling(1).mean()*360/2/np.pi) , df['motor.state1.delta_iq'].rolling(100).mean()  )
+plt.plot( df['motor.state1.delta_id'].rolling(100).mean() )
+plt.plot(df['motor.state1.delta_iq'].rolling(100).mean()  )
 # plt.plot( (df['motor.state1.thetaPark_enc'].rolling(100).mean()/2/np.pi) , ( df['s1.delta_id'].rolling(100).mean()  + df['s1.delta_iq'].rolling(100).mean() )  )
 plt.gca().xaxis.set_major_locator(plt.MaxNLocator(5, steps=[1,2,4.5,5,9,10]))
-plt.xlabel('Rotor angle [deg]')
+# plt.xlabel('Rotor angle [deg]')
 plt.ylabel('delta current [A]')
 plt.legend( ("Parallel" , "Orthogonal") , loc='best') 
-plt.xlim( 0, 360)
+# plt.xlim( 0, 360)
 
 plt.legend( ("Parallel beta 0 A" , "Orthogonal beta 0 A" , "Parallel beta -5 A" , "Orthogonal beta -5 A" , "Parallel beta 5 A" , "Orthogonal beta 5 A") , loc='best') 
 

@@ -1,22 +1,22 @@
 #%%
-# import pyqtgraph as pg
-# from PyQt5.QtWidgets import QApplication, QGridLayout, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QLineEdit, QSlider, QCompleter
-# from PyQt5.QtCore import QObject, pyqtSignal, QEvent
-# from PyQt5.QtCore import Qt
-# import struct
+import pyqtgraph as pg
+from PyQt5.QtWidgets import QApplication, QGridLayout, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QLineEdit, QSlider, QCompleter
+from PyQt5.QtCore import QObject, pyqtSignal, QEvent
+from PyQt5.QtCore import Qt
+import struct
 
-# from pyqtgraph.parametertree import Parameter, ParameterTree
-# from pyqtgraph.Qt import QtCore, QtWidgets
-# from pyqtgraph.widgets.PlotWidget import PlotWidget
-# import numpy as np
+from pyqtgraph.parametertree import Parameter, ParameterTree
+from pyqtgraph.Qt import QtCore, QtWidgets
+from pyqtgraph.widgets.PlotWidget import PlotWidget
+import numpy as np
 
-# pg.setConfigOption('background', 'k')
-# pg.setConfigOption('foreground', 'w')
+pg.setConfigOption('background', 'k')
+pg.setConfigOption('foreground', 'w')
 
-# import TeensyMotorControl as tc
+import TeensyMotorControl as tc
 
-# m = tc.Motor(  )
-# motor = tc.MotorVariables( m )
+m = tc.Motor(  )
+motor = tc.MotorVariables( m )
 
 #%%
 maxdata = 2001
@@ -419,44 +419,44 @@ thread.start()
 
 thread.startdata( [ 'motor.state1.Id_SP', 'motor.state1.Iq_SP', 'motor.state1.Id_meas', 'motor.state1.Iq_meas', 'motor.state1.encoderPos1', 'motor.state2.encoderPos1','motor.state1.Vd','motor.state1.Vq','motor.state1.maxVolt'] )
 # thread.startdata( [ 'motor.state1.Iq_SP', 'motor.state2.Iq_SP', 'motor.state1.Iq_meas', 'motor.state2.Iq_meas', 'motor.state1.rmech', 'motor.state1.ymech','motor.state1.Vd','motor.state1.Vq','motor.state1.maxVolt'] )
-
-
-
-#%%
-text = 'kd'
+app.exec()
 
 
 #%%
-from _buildParamTypes import makeAllParamTypes
-from PyQt5.QtWidgets import QApplication, QGridLayout, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QLineEdit, QSlider
-
-import pyqtgraph as pg
-from pyqtgraph.Qt import QtWidgets
-
-app = pg.mkQApp("Parameter Tree Example")
-import pyqtgraph.parametertree.parameterTypes as pTypes
-from pyqtgraph.parametertree import Parameter, ParameterTree
-
-params = [
-    {'name': 'Save/Restore functionality', 'type': 'group', 'children': [
-        {'name': 'Save State', 'type': 'action'},
-    ]},
-]
-
-## Create tree of Parameter objects
-p = Parameter.create(name='params', type='group', children=params)
-
-t = ParameterTree()
-t.setParameters(p, showTop=False)
-t.setWindowTitle('pyqtgraph example: Parameter Tree')
+# text = 'kd'
 
 
-win = QtWidgets.QWidget()
-layout = QtWidgets.QGridLayout()
-win.setLayout(layout)
-layout.addWidget(QtWidgets.QLabel("These are two views of the same data. They should always display the same values."), 0,  0, 1, 2)
-layout.addWidget(t, 1, 0, 1, 1)
-win.show()
+# #%%
+# from _buildParamTypes import makeAllParamTypes
+# from PyQt5.QtWidgets import QApplication, QGridLayout, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QLineEdit, QSlider
+
+# import pyqtgraph as pg
+# from pyqtgraph.Qt import QtWidgets
+
+# app = pg.mkQApp("Parameter Tree Example")
+# import pyqtgraph.parametertree.parameterTypes as pTypes
+# from pyqtgraph.parametertree import Parameter, ParameterTree
+
+# params = [
+#     {'name': 'Save/Restore functionality', 'type': 'group', 'children': [
+#         {'name': 'Save State', 'type': 'action'},
+#     ]},
+# ]
+
+# ## Create tree of Parameter objects
+# p = Parameter.create(name='params', type='group', children=params)
+
+# t = ParameterTree()
+# t.setParameters(p, showTop=False)
+# t.setWindowTitle('pyqtgraph example: Parameter Tree')
+
+
+# win = QtWidgets.QWidget()
+# layout = QtWidgets.QGridLayout()
+# win.setLayout(layout)
+# layout.addWidget(QtWidgets.QLabel("These are two views of the same data. They should always display the same values."), 0,  0, 1, 2)
+# layout.addWidget(t, 1, 0, 1, 1)
+# win.show()
 
 
 #%%

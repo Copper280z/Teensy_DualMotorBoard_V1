@@ -8,10 +8,10 @@ Created on Sat Oct  7 14:51:16 2023
 Fplayback = round(1/m.Ts)
 N_samples_per_write = 100
 bufsize = 10000
-musicgain = 10
+musicgain = 0.5
 
 import scipy
-folder = 'music\\'
+folder = '~/Downloads'
 
 #%%
 (Fs , data) = scipy.io.wavfile.read( folder + "AC⧸DC - Thunderstruck (Official Video).wav")
@@ -19,10 +19,12 @@ folder = 'music\\'
 stream = data[200*Fs:300*Fs]
 stream = scipy.signal.resample(stream , int(len(stream)/Fs*Fplayback) ) 
 #%%
-(Fs , data) = scipy.io.wavfile.read( folder + "#Stereo： Left and Right Stereo Sound Test.wav")
+(Fs , data) = scipy.io.wavfile.read( '../../../Downloads/still_alive.wav')
 
 stream = data[6*Fs:]
 stream = scipy.signal.resample(stream , int(len(stream)/Fs*Fplayback) ) 
+stream = np.sum(stream,axis=1)
+
 #%%
 (Fs , data) = scipy.io.wavfile.read( folder + "8D Audio Bass Test !!.wav")
 
@@ -59,17 +61,17 @@ L = len(stream)
 
 m.setpar('s1.runstream' , 0)
 m.setpar('s1.curbuffer' , 0)
-m.setpar('s2.runstream' , 0)
-m.setpar('s2.curbuffer' , 0)
+# m.setpar('s2.runstream' , 0)
+# m.setpar('s2.curbuffer' , 0)
 
 for i in range( int(bufsize /N_samples_per_write) ):
-   m.setparpart( 's1.streambuffer' ,  stream[ i*N_samples_per_write : (i+1)*N_samples_per_write , 1] , startlocation = np.mod(i*N_samples_per_write , bufsize ) )
-   m.setparpart( 's2.streambuffer' ,  stream[ i*N_samples_per_write : (i+1)*N_samples_per_write , 0] , startlocation = np.mod(i*N_samples_per_write , bufsize ) )
+   m.setparpart( 's1.streambuffer' ,  stream[ i*N_samples_per_write : (i+1)*N_samples_per_write ] , startlocation = np.mod(i*N_samples_per_write , bufsize ) )
+   # m.setparpart( 's2.streambuffer' ,  stream[ i*N_samples_per_write : (i+1)*N_samples_per_write , 0] , startlocation = np.mod(i*N_samples_per_write , bufsize ) )
 
 m.setpar('s1.runstream' , 1)
-m.setpar('s2.runstream' , 1)
+# m.setpar('s2.runstream' , 1)
 m.setpar('s1.buffergain' , musicgain)
-m.setpar('s2.buffergain' , musicgain)
+# m.setpar('s2.buffergain' , musicgain)
 
 # m.vel([-20 , 20])
 try:
@@ -84,8 +86,8 @@ try:
         startloc = np.mod(i*N_samples_per_write , bufsize )
         while (startloc  <= m.getsig('s1.curbuffer') <= startloc + N_samples_per_write):
             pass
-        m.setparpart( 's1.streambuffer' ,  stream[ i*N_samples_per_write + bufsize: (i+1)*N_samples_per_write + bufsize , 1] , startlocation = startloc )
-        m.setparpart( 's2.streambuffer' ,  stream[ i*N_samples_per_write + bufsize: (i+1)*N_samples_per_write + bufsize , 0] , startlocation = startloc )
+        m.setparpart( 's1.streambuffer' ,  stream[ i*N_samples_per_write + bufsize: (i+1)*N_samples_per_write + bufsize ] , startlocation = startloc )
+        # m.setparpart( 's2.streambuffer' ,  stream[ i*N_samples_per_write + bufsize: (i+1)*N_samples_per_write + bufsize , 0] , startlocation = startloc )
         # print((i+1)*N_samples_per_write + bufsize)
 except:
     time.sleep(0.1)   
@@ -93,6 +95,6 @@ except:
     print('Canceled')
   
 m.setpar('s1.buffergain' , 0)
-m.setpar('s2.buffergain' , 0)
+# m.setpar('s2.buffergain' , 0)
 m.setpar('s1.runstream' , 0)
-m.setpar('s2.runstream' , 0)
+# m.setpar('s2.runstream' , 0)

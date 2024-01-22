@@ -57,12 +57,12 @@ m.CL_cur( 2.5e3 , 1)
 m.setpar('s1.hfi_use_lowpass', 1)
 m.setpar('s1.hfi_method', 1)
 
-Ki = 1000*2*pi
+Ki = 200*2*pi
 hfi_v = 19
 
 m.setpar('s1.hfi_maxvel', 1e6)
 m.setpar('s1.hfi_gain', Ki)
-m.setpar('s1.hfi_gain_int2', 5*2*pi) # 5*2*pi
+m.setpar('s1.hfi_gain_int2', 7*2*pi) # 5*2*pi
 m.setpar('s1.hfi_V', hfi_v)
 m.setpar('s1.hfi_on', 1)
 m.setpar('c1.anglechoice', 3)
@@ -167,7 +167,7 @@ if 0:
     m.setpar('s1.hfi_method', 1)
     
     Ki = 1000*2*pi
-    hfi_v = 15
+    hfi_v = 19
     
     m.setpar('s1.hfi_maxvel', 1e6)
     m.setpar('s1.hfi_gain', Ki)
@@ -176,8 +176,8 @@ if 0:
     m.setpar('s1.hfi_on', 1)
     
     m.setpar('motor.conf1.anglechoice', 101)
-    m.setpar('motor.state1.Id_offset_SP',1.5)
-    m.setpar('motor.state1.Iq_offset_SP',0.1)
+    m.setpar('motor.state1.Id_offset_SP',3)
+    m.setpar('motor.state1.Iq_offset_SP',0)
     
     
     # m.setpar('motor.state1.thetaPark', 0)
