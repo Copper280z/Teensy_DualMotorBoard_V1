@@ -43,8 +43,8 @@ time.sleep(0.5)
 motor.conf1.commutationoffset = 0
 motor.conf2.commutationoffset = 0
 
-motor.state1.Valpha_offset = 1
-motor.state2.Valpha_offset = 1
+motor.state1.Valpha_offset = 5
+motor.state2.Valpha_offset = 5
 
 time.sleep(1)
 
@@ -457,7 +457,7 @@ print(m.getsig('motor.state1.current'))
 print(m.getsigpart('motor.state1.current', 1, 3))
 
 # %% Current loop axis 1  
-m.setpar('motor.conf1.anglechoice', 0)
+m.setpar('motor.conf1.anglechoice', 3)
 
 NdownsamplePRBS = 1
 N = 30*NdownsamplePRBS*2047
@@ -466,7 +466,7 @@ signals = ['motor.state1.Id_meas', 'motor.state1.Iq_meas',
 m.setTrace(signals )
 
 
-gain = 0.5
+gain = 10.0
 # m.setpar('motor.state1.Valpha_offset', 0)
 # time.sleep(0.5)
 m.setpar('motor.state1.Vq_distgain', 1)
@@ -545,7 +545,7 @@ plt.plot(
     f, np.abs(1/(Pd * f * 2 * np.pi)) * 1e6)
 plt.grid()
 plt.xlim([1e3, 10e3])
-plt.ylim([ 100 , 500])
+plt.ylim([ 100 , 4000])
 plt.title('Ld [uH]')
 
 
@@ -554,7 +554,7 @@ plt.plot(
     f, np.abs(1/(Pq * f * 2 * np.pi)) * 1e6)
 plt.grid()
 plt.xlim([1e3, 10e3])
-plt.ylim([ 100 , 500])
+plt.ylim([ 100 , 4000])
 plt.title('Lq [uH]')
 
 plt.figure(7)
@@ -656,7 +656,7 @@ signals = ['motor.state1.Id_meas', 'motor.state1.Iq_meas',
 m.setTrace(signals )
  
 
-gain = 0.10
+gain = 0.05
 m.setpar('motor.state1.Vq_distgain', 0)
 m.setpar('motor.state1.Vd_distgain', 0)
 m.setpar('motor.state1.Iq_distgain', 0)
@@ -767,7 +767,7 @@ m.setTrace(signals)
 vmax = 20000  # ERPM
 
 m.setpar('motor.conf1.anglechoice', 99)
-m.setpar('motor.state1.Id_offset_SP', 2)
+m.setpar('motor.state1.Id_offset_SP', 0.5)
 m.setpar('motor.state1.i_vector_acc', 500)
 m.setpar('motor.state1.i_vector_radpers', vmax / 60 * 2*pi)
 
@@ -1174,7 +1174,7 @@ plt.figure(2)
 
 
 #%%  
-prepSP( 360/360*2*pi , 250 , 6000 ,2500000)
+m.prepSP( 360/360*2*pi , 200 , 4000 ,250000)
 N = 1
 m.setpar('motor.state1.SPdir' , 1)
 m.setpar('motor.state1.spNgo' , N)

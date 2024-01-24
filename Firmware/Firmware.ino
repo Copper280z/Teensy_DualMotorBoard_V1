@@ -819,6 +819,7 @@ void Transforms( mot_conf_t* confX , mot_state_t* stateX , Biquad **BiquadsX)
     } else if (stateX->hfi_method == 5) {
           stateX->hfi_curangleest = 0.25f * atan2( -stateX->delta_iq  , stateX->delta_id - 0.5 * stateX->hfi_V * motor.conf.T * ( 1 / confX->Lq + 1 / confX->Ld ) ); //Complete calculation (not needed because error is always small due to feedback). 0.25 comes from 0.5 because delta signals are used and 0.5 due to 2theta (not just theta) being in the sin and cos wave.
     }
+    // else if (stateX->hfi_method == 6) { }
     if (stateX->hfi_use_lowpass) {
       LOWPASS( stateX->hfi_error , -stateX->hfi_curangleest , 0.19); //Negative feedback and lowpass (0.19 gives 2000 Hz at 60 kHz sampling: c = 1 - exp(-2000*2*pi*1/60000))
     }
@@ -1152,9 +1153,9 @@ void processCommands( mot_conf_t* confX ,  mot_state_t* stateX ) {
           motor.conf1.Kp = 0;
           motor.conf2.Kp = 0;
           digitalWrite( ENGATE , 1);
-          SPI_init( SSPIN );  // Only for DRV8301.
+          // SPI_init( SSPIN );  // Only for DRV8301.
           digitalWrite( ENGATE2 , 1);
-          SPI_init( SSPIN2 );  // Only for DRV8301.
+          // SPI_init( SSPIN2 );  // Only for DRV8301.
           motor.state1.OutputOn = true;
           motor.state2.OutputOn = true;
         }

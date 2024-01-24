@@ -56,7 +56,7 @@ motor = tc.MotorVariables( m )
 z = ct.TransferFunction( [1, 0] , [1] , float(m.Ts))
 
 # Run code till here, and you will have the m and motor objects to work with 
-m.setpar('motor.state1.muziek_gain', .50)
+m.setpar('motor.state1.muziek_gain', .0)
 # motor.conf1.enccountperrev = 4096
 # motor.conf1.enc2rad = (2*np.pi)/motor.conf1.enccountperrev
 
@@ -91,16 +91,16 @@ Ld = 2543e-6
 # Ld = 2500e-6
 
 R = 10.8
-m.setpar('motor.conf1.Lambda_m', 0.0085)
+m.setpar('motor.conf1.Lambda_m', 0.008)
 m.setpar('motor.conf1.N_pp',  7)
 m.setpar('motor.conf1.Lq', Lq)
 m.setpar('motor.conf1.Ld', Ld)
 m.setpar('motor.state1.R', R)
 
-m.CL_cur( 0.7e3 , 1)
+m.CL_cur( 0.5e3 , 1)
 
 #%%
-m.setpar('motor.state1.Iq_offset_SP',0.3)
+m.setpar('motor.state1.Iq_offset_SP',0.1)
 time.sleep(1)
 m.setpar('motor.state1.Iq_offset_SP',0.0)
 
@@ -108,8 +108,8 @@ m.setpar('motor.state1.Iq_offset_SP',0.0)
 #%%
 signals = [ 's1.encoderPos1','s1.thetaPark_enc', 's1.BEMFa', 's1.BEMFb']
 m.setTrace(signals)
-m.setpar('motor.conf1.anglechoice', 0)
-m.setpar('motor.state1.Iq_offset_SP',0.5)
+m.setpar('motor.conf1.anglechoice', 1)
+m.setpar('motor.state1.Iq_offset_SP',0.2)
 
 df = m.trace(1)
 m.setpar('motor.state1.Iq_offset_SP',0.0)
@@ -211,13 +211,51 @@ align_yaxis(ax1, ax2)
 # plt.legend(['estimated error', 'true error'])
 plt.show()
 
+#%%  
+m.setpar('s1.hfi_use_lowpass', 1)
+m.setpar('s1.hfi_method', 5)
+
+# Ki = 0.01*2*pi
+Ki = 750*2*pi
+hfi_v = 18
+
+m.setpar('s1.hfi_maxvel', 1e6)
+m.setpar('s1.hfi_gain', Ki)
+# m.setpar('s1.hfi_gain_int2', 0.001*2*pi) # 5*2*pi
+m.setpar('s1.hfi_gain_int2', 5*2*pi) # 5*2*pi
+m.setpar('s1.hfi_V', hfi_v)
+m.setpar('s1.hfi_dir_int',0)
+m.setpar('s1.hfi_contout',0)
+m.setpar('s1.hfi_on', 1)
+m.setpar('c1.anglechoice', 3)
+m.setpar('motor.state1.Id_offset_SP',0.2)
+
+m.setpar( 's1.hfi_useforfeedback' , 1)
+m.setpar( 'motor.conf1.maxerror' , 1e6)
+# m.setpar( 'motor.conf1.maxerror' , 1e6)
+
+# m.CL( 1, 1, J=0.00021)
+m.CL( 7, 1, J=0.0000021)
+#%%
+m.setpar( 'motor.conf1.Command' , 2)
+
+#%%  
+m.prepSP( 360/360*2*pi , 200 , 2000 ,250000)
+N = 1
+m.setpar('motor.state1.SPdir' , 1)
+m.setpar('motor.state1.spNgo' , N)
+
+while (m.getsig('motor.state1.spNgo') > 0 or m.getsig('motor.state1.REFstatus') > 0 ):
+    bla = 1;
+m.setpar('motor.state1.SPdir' , 0)
+m.setpar('motor.state1.spNgo' , N)
 # %% Current loop axis 1  
 if 1:
     m.setpar('s1.hfi_method', 0)
     m.setpar('motor.conf1.anglechoice', 0)
     
     NdownsamplePRBS = 3
-    N = 50*NdownsamplePRBS*2047
+    N = 30*NdownsamplePRBS*2047
     signals = ['motor.state1.Id_meas', 'motor.state1.Iq_meas',
                'motor.state1.dist', 'motor.state1.Vq', 'motor.state1.Vd']
     m.setTrace(signals )
