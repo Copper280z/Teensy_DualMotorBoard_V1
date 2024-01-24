@@ -75,9 +75,15 @@ typedef struct mot_conf_t {
   float Kd_prep;
   float lowpass_c_prep;
   float enc_transmission;
+  float Lq_Iq_m;
+  float Lq_Iq_b;
+  float Ld_Id_m;
+  float Ld_Id_b;
 } mot_conf_t;
 
 typedef struct mot_state_t {
+  float Ld_fit;
+  float Lq_fit;
   float streambuffer[10000];
   unsigned int curbuffer;
   float buffergain;

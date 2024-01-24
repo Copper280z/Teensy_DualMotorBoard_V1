@@ -70,6 +70,10 @@ void initmotor( mot_conf_t* m , mot_state_t* state ) {
   m->Lq = 10e-3; //[Henry] Lq induction: phase-zero
   m->Lambda_m = 0.01; //[Weber] Note: on the fly changes of Kt do not adjust this value!
   m->Kp = 0;
+  m->Lq_Iq_m = 0;
+  m->Lq_Iq_b = 3.1e-3;
+  m->Ld_Id_m = 0;
+  m->Ld_Id_b = 2.4e-3;
 }
 
 void setup() {
@@ -817,9 +821,13 @@ void Transforms( mot_conf_t* confX , mot_state_t* stateX , Biquad **BiquadsX)
         stateX->hfi_curangleest =  (stateX->Iq_meas - stateX->Iq_SP) / (-stateX->hfi_V * motor.conf.T * ( 1 / confX->Lq - 1 / confX->Ld ) );
       }
     } else if (stateX->hfi_method == 5) {
-          stateX->hfi_curangleest = 0.25f * atan2( -stateX->delta_iq  , stateX->delta_id - 0.5 * stateX->hfi_V * motor.conf.T * ( 1 / confX->Lq + 1 / confX->Ld ) ); //Complete calculation (not needed because error is always small due to feedback). 0.25 comes from 0.5 because delta signals are used and 0.5 due to 2theta (not just theta) being in the sin and cos wave.
+      stateX->hfi_curangleest = 0.25f * atan2( -stateX->delta_iq  , stateX->delta_id - 0.5 * stateX->hfi_V * motor.conf.T * ( 1 / confX->Lq + 1 / confX->Ld ) ); //Complete calculation (not needed because error is always small due to feedback). 0.25 comes from 0.5 because delta signals are used and 0.5 due to 2theta (not just theta) being in the sin and cos wave.
     }
-    // else if (stateX->hfi_method == 6) { }
+    else if (stateX->hfi_method == 6) {
+      stateX->Ld_fit = confX->Ld_Id_m * stateX->Id_meas + confX->Ld_Id_b;
+      stateX->Lq_fit = confX->Lq_Iq_m * stateX->Iq_meas + confX->Lq_Iq_b;
+      stateX->hfi_curangleest = 0.25f * atan2( -stateX->delta_iq  , stateX->delta_id - 0.5 * stateX->hfi_V * motor.conf.T * ( 1 / stateX->Lq_fit + 1 / stateX->Ld_fit ) );
+    }
     if (stateX->hfi_use_lowpass) {
       LOWPASS( stateX->hfi_error , -stateX->hfi_curangleest , 0.19); //Negative feedback and lowpass (0.19 gives 2000 Hz at 60 kHz sampling: c = 1 - exp(-2000*2*pi*1/60000))
     }
