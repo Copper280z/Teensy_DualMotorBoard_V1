@@ -61,22 +61,22 @@ m.setpar('motor.state1.muziek_gain', .0)
 # motor.conf1.enc2rad = (2*np.pi)/motor.conf1.enccountperrev
 
 #%% Commutate with encoder
-# m.CL_cur( 0 )
-# motor.conf1.ridethewave = 1
-# time.sleep(0.5)
+m.CL_cur( 0 )
+motor.conf1.ridethewave = 1
+time.sleep(0.5)
 
-# motor.conf1.commutationoffset = 0
+motor.conf1.commutationoffset = 0
 
-# motor.state1.Valpha_offset = 2
+motor.state1.Valpha_offset = 2
 
-# time.sleep(1)
+time.sleep(1)
 
-# offset1 = motor.state1.thetaPark_enc
+offset1 = motor.state1.thetaPark_enc
 
-# motor.state1.Valpha_offset = 0
+motor.state1.Valpha_offset = 0
 
-# motor.conf1.commutationoffset = -offset1
-# print(f'Commutation offset: {-offset1}')
+motor.conf1.commutationoffset = -offset1
+print(f'Commutation offset: {-offset1}')
 # %%
 # 0.4A of d-axis current
 # Lq = 2000e-6
@@ -85,11 +85,11 @@ m.setpar('motor.state1.muziek_gain', .0)
 # 0.2A of d-axis current
 # Lq = 3103e-6
 # Ld = 2543e-6
-Lq = 2800e-6
+Lq = 2950e-6
 Ld = 2150e-6
 # 0 current bias
-# Lq = 3000e-6
-# Ld = 2500e-6
+# Lq = 3100e-6
+# Ld = 2400e-6
 
 R = 10.8
 m.setpar('motor.conf1.Lambda_m', 0.008)
@@ -102,8 +102,12 @@ m.CL_cur( 0.5e3 , 1)
 
 #%%  
 m.setpar('s1.hfi_use_lowpass', 1)
-m.setpar('s1.hfi_method', 5)
+m.setpar('s1.hfi_method', 6)
 
+m.setpar('motor.conf1.Lq_Iq_m', -444e-6)
+m.setpar('motor.conf1.Ld_Id_m', -1222e-6)
+m.setpar('motor.conf1.Lq_Iq_b', Lq)
+m.setpar('motor.conf1.Ld_Id_b', Ld)
 # Ki = 0.01*2*pi
 Ki = 750*2*pi
 hfi_v = 18
@@ -120,19 +124,30 @@ m.setpar('c1.anglechoice', 3)
 m.setpar('motor.state1.Id_offset_SP',0.1)
 
 m.setpar( 's1.hfi_useforfeedback' , 1)
-m.setpar( 'motor.conf1.maxerror' , 1e9)
 # m.setpar( 'motor.conf1.maxerror' , 1e6)
 time.sleep(0.5)
 
 # m.CL( 1, 1, J=0.00021)
 m.CL( 7, 1, J=0.0000025)
+m.setpar( 'motor.conf1.maxerror' , 2)
 time.sleep(0.5)
+
+# #%%
+# m.setTrace([ 'motor.state1.rmech' , 'motor.state1.ymech' , 'motor.state1.emech' ,
+#             'motor.state1.Vd', 'motor.state1.Vq', 'motor.state1.Iq_SP',
+#             'motor.state1.Iq_meas', 'motor.state1.Id_meas', 'motor.state1.hfi_abs_pos', 
+#             'motor.state1.hfi_curangleest','motor.state1.mechcontout' ,'motor.state1.T_FF_acc' ,
+#             'motor.state1.T_FF_vel','motor.state.sensBus', 'motor.state1.Ld_fit', 'motor.state1.Lq_fit'])
+
+# df = m.trace(3)
+
+# df.filter(regex='_fit').plot()
 
 
 #%%  
 # m.setTrace( ['motor.state1.rmech' , 'motor.state1.vel', 'motor.state1.emech',  'motor.state1.ymech','motor.state1.Iq_SP'])
 
-m.prepSP( 360/360*2*pi , 200 , 2000 ,500000)
+m.prepSP( 360/360*2*pi , 25 , 2000 ,500000)
 N = 1
 # df = m.tracebg()
 m.setpar('motor.state1.SPdir' , 1)
@@ -156,13 +171,17 @@ a = 9000
 jerk = 2500000
 # a = 2000 #Only motor 1
 
-motor.state1.Jload = 0.0000035
+motor.state1.Jload = 0.0000033
 
-m.setpar('motor.state1.velFF' , 0.000040)
+m.setpar('motor.state1.velFF' , 0.000020)
 # m.setpar('motor.state2.velFF' , 0.00055)
 
-m.setTrace([ 'motor.state1.rmech' , 'motor.state1.ymech' , 'motor.state1.emech' , 'motor.state1.Vd', 'motor.state1.Vq', 'motor.state1.Iq_SP','motor.state2.Iq_SP','motor.state1.Iq_meas', 'motor.state1.Id_meas', 'motor.state1.hfi_abs_pos', 'motor.state1.hfi_curangleest','motor.state1.mechcontout' ,'motor.state2.mechcontout' ,'motor.state1.T_FF_acc' ,'motor.state1.T_FF_vel','motor.state2.T_FF_acc' ,'motor.state2.T_FF_vel'  ,'motor.state.sensBus' ])
-
+m.setTrace([ 'motor.state1.rmech' , 'motor.state1.ymech' , 'motor.state1.emech' ,
+            'motor.state1.Vd', 'motor.state1.Vq', 'motor.state1.Iq_SP',
+            'motor.state1.Iq_meas', 'motor.state1.Id_meas', 'motor.state1.hfi_abs_pos', 
+            'motor.state1.hfi_curangleest','motor.state1.mechcontout' ,'motor.state1.T_FF_acc' ,
+            'motor.state1.T_FF_vel','motor.state.sensBus', 'motor.state1.Ld_fit', 
+            'motor.state1.Lq_fit','motor.state1.thetaPark_enc', 'motor.state1.hfi_dir'])
 m.tracebg(  )
 
 # time.sleep(0.1)
@@ -200,6 +219,15 @@ df = m.stoptracegetdata()
 
 
 df.filter(regex='state1..me|state1.me|state1.Iq').plot()
+
+fig0, ax0 = plt.subplots()
+ax1 = ax0.twinx()
+df.filter(regex='state1.Iq|state1.Id').rolling(10).mean().plot(ax=ax0)
+df.filter(regex='_fit').rolling(50).mean().plot(secondary_y=True,ax=ax1,style='--')
+
+
+
+df.filter(regex='hfi_dir|thetaPark_enc').plot()
 
 
 # df.filter(regex='emech').plot()

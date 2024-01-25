@@ -825,7 +825,7 @@ void Transforms( mot_conf_t* confX , mot_state_t* stateX , Biquad **BiquadsX)
     }
     else if (stateX->hfi_method == 6) {
       stateX->Ld_fit = confX->Ld_Id_m * stateX->Id_meas + confX->Ld_Id_b;
-      stateX->Lq_fit = confX->Lq_Iq_m * stateX->Iq_meas + confX->Lq_Iq_b;
+      stateX->Lq_fit = confX->Lq_Iq_m * abs(stateX->Iq_meas) + confX->Lq_Iq_b;
       stateX->hfi_curangleest = 0.25f * atan2( -stateX->delta_iq  , stateX->delta_id - 0.5 * stateX->hfi_V * motor.conf.T * ( 1 / stateX->Lq_fit + 1 / stateX->Ld_fit ) );
     }
     if (stateX->hfi_use_lowpass) {
