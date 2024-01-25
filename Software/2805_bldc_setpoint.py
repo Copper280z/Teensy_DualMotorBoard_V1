@@ -117,7 +117,7 @@ m.setpar('s1.hfi_dir_int',0)
 m.setpar('s1.hfi_contout',0)
 m.setpar('s1.hfi_on', 1)
 m.setpar('c1.anglechoice', 3)
-m.setpar('motor.state1.Id_offset_SP',0.2)
+m.setpar('motor.state1.Id_offset_SP',0.1)
 
 m.setpar( 's1.hfi_useforfeedback' , 1)
 m.setpar( 'motor.conf1.maxerror' , 1e9)
@@ -151,14 +151,14 @@ if 0:
 #%% Relative setpoints with trace
 # time.sleep(10)
 
-v = 250
-a = 3200
-jerk = 700000
+v = 500
+a = 9000
+jerk = 2500000
 # a = 2000 #Only motor 1
 
-motor.state1.Jload = 0.0000025
+motor.state1.Jload = 0.0000035
 
-m.setpar('motor.state1.velFF' , 0.000025)
+m.setpar('motor.state1.velFF' , 0.000040)
 # m.setpar('motor.state2.velFF' , 0.00055)
 
 m.setTrace([ 'motor.state1.rmech' , 'motor.state1.ymech' , 'motor.state1.emech' , 'motor.state1.Vd', 'motor.state1.Vq', 'motor.state1.Iq_SP','motor.state2.Iq_SP','motor.state1.Iq_meas', 'motor.state1.Id_meas', 'motor.state1.hfi_abs_pos', 'motor.state1.hfi_curangleest','motor.state1.mechcontout' ,'motor.state2.mechcontout' ,'motor.state1.T_FF_acc' ,'motor.state1.T_FF_vel','motor.state2.T_FF_acc' ,'motor.state2.T_FF_vel'  ,'motor.state.sensBus' ])
@@ -199,7 +199,7 @@ df = m.stoptracegetdata()
 # df.filter(regex='sens').plot()
 
 
-df.filter(regex='state1..me|state1.me').plot()
+df.filter(regex='state1..me|state1.me|state1.Iq').plot()
 
 
 # df.filter(regex='emech').plot()
