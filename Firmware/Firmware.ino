@@ -613,6 +613,7 @@ void Control( mot_conf_t* confX , mot_state_t* stateX , Biquad **BiquadsX) {
   }
 
   stateX->Iq_SP = stateX->mechcontout / (1.5 * confX->N_pp * confX->Lambda_m );
+  stateX->Iq_SP += confX->cog_ff_gain * confX->cog_torque_ff[ size_t(stateX->thetaPark * 100 / (2 * M_PI))];
 }
 
 void Transforms( mot_conf_t* confX , mot_state_t* stateX , Biquad **BiquadsX)

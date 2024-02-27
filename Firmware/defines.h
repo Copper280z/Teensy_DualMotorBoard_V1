@@ -79,6 +79,8 @@ typedef struct mot_conf_t {
   float Lq_Iq_b;
   float Ld_Id_m;
   float Ld_Id_b;
+  float cog_ff_gain;
+  float cog_torque_ff[101];
 } mot_conf_t;
 
 typedef struct mot_state_t {
