@@ -263,8 +263,8 @@ void flexpwm2_init() {     //set PWM
   FLEXPWM2_SM0VAL4 = 0 + adc_shift; // adc trigger 1
   FLEXPWM2_SM0VAL5 = FLEXPWM2_SM0VAL1 + adc_shift; // adc trigger 2
 
-  //FLEXPWM2_SM2VAL4 = FLEXPWM2_SM0VAL4; // adc trigger 1 to show on digital output 9
-  //FLEXPWM2_SM2VAL5 = FLEXPWM2_SM0VAL5; // adc trigger 2 to show on digital output 9
+  FLEXPWM2_SM2VAL4 = FLEXPWM2_SM0VAL4; // adc trigger 1 to show on digital output 9
+  FLEXPWM2_SM2VAL5 = FLEXPWM2_SM0VAL5; // adc trigger 2 to show on digital output 9
 
   FLEXPWM2_MCTRL |= FLEXPWM_MCTRL_LDOK( 7 );// Load Okay LDOK(SM) -> reload setting again
 
@@ -281,8 +281,8 @@ void flexpwm2_init() {     //set PWM
   *(portConfigRegister(5)) = 1; //Set port 5 to the right mux value (found in pwm.c)
   *(portConfigRegister(6)) = 2; //Set port 6 to the right mux value (found in pwm.c)
 
-  //FLEXPWM2_OUTEN |= FLEXPWM_OUTEN_PWMB_EN( 4 ); // Activate B channel
-  //*(portConfigRegister(9)) = 2; //Set port 9 to the right mux value (found in pwm.c)
+  FLEXPWM2_OUTEN |= FLEXPWM_OUTEN_PWMB_EN( 4 ); // Activate B channel
+  *(portConfigRegister(9)) = 2; //Set port 9 to the right mux value (found in pwm.c)
 }
 
 void flexpwm4_init() {     //set PWM

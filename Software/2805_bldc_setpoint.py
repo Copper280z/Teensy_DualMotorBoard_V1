@@ -56,7 +56,7 @@ motor = tc.MotorVariables( m )
 z = ct.TransferFunction( [1, 0] , [1] , float(m.Ts))
 
 # Run code till here, and you will have the m and motor objects to work with 
-m.setpar('motor.state1.muziek_gain', .0)
+m.setpar('motor.state1.muziek_gain', 0.0)
 # motor.conf1.enccountperrev = 4096
 # motor.conf1.enc2rad = (2*np.pi)/motor.conf1.enccountperrev
 
@@ -110,7 +110,7 @@ m.setpar('motor.conf1.Lq_Iq_b', Lq)
 m.setpar('motor.conf1.Ld_Id_b', Ld)
 # Ki = 0.01*2*pi
 Ki = 750*2*pi
-hfi_v = 18
+hfi_v = 19
 
 m.setpar('s1.hfi_maxvel', 1e6)
 m.setpar('s1.hfi_gain', Ki)
