@@ -107,13 +107,13 @@ def measure_electrical_plant_open_loop(m, volts=1, Valpha_offset=0, Id_offset=0)
     return Ld/1e6, Lq/1e6
 
 est_params = {}
-R, max_amps = est_phase_resistance(m, v_min=2, v_max=7.0, n_steps=4)
+R, max_amps = est_phase_resistance(m, v_min=0.3, v_max=1, n_steps=4)
 est_params['R'] = R
 print(f'Measured Resistance: {R:.4f}')
 print(f'Observed current: {max_amps:.3f}')
 
 m.setpar('motor.state1.R', est_params['R'])
-Ld, Lq = measure_electrical_plant_open_loop(m, volts=R, Valpha_offset=R/3, Id_offset=0)
+Ld, Lq = measure_electrical_plant_open_loop(m, volts=R, Valpha_offset=0, Id_offset=0)
 print(f'Measured Ld: {Ld*1e6:.3f} uH')
 print(f'Measured Lq: {Lq*1e6:.3f} uH')
 est_params['Ld'] = Ld
