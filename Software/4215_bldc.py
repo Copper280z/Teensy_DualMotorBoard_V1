@@ -44,7 +44,7 @@ def align_yaxis(ax1, ax2):
     ax2.set_ylim(new_lim2)
 
 pi = np.pi
-# plt.rcParams["figure.dpi"] = 200 #Use this with 4k screens
+plt.rcParams["figure.dpi"] = 200 #Use this with 4k screens
 plt.rcParams.update({"axes.grid": True})
 plt.rcParams.update({"legend.loc": 'upper left'})
 # pg.setConfigOption('background', 'k')
@@ -57,7 +57,23 @@ z = ct.TransferFunction( [1, 0] , [1] , float(m.Ts))
 
 # Run code till here, and you will have the m and motor objects to work with 
 m.setpar('motor.state1.muziek_gain', 0)
+# %%
+m.CL_cur( 0 )
+motor.conf1.ridethewave = 1
+time.sleep(0.5)
 
+motor.conf1.commutationoffset = 0
+
+motor.state1.Valpha_offset = 1.0
+
+time.sleep(1)
+
+offset1 = motor.state1.thetaPark_enc
+
+motor.state1.Valpha_offset = 0
+
+motor.conf1.commutationoffset = -offset1
+print(f'Commutation offset: {-offset1}')
 # %%
 m.setpar( 'motor.conf1.Command' , 2)
 
@@ -71,7 +87,7 @@ m.setpar('motor.conf1.Lq', Lq)
 m.setpar('motor.conf1.Ld', Ld)
 m.setpar('motor.state1.R', R)
 
-m.CL_cur( 2.0e3 , 1)
+m.CL_cur( 2.5e3 , 1)
 
 
 #%%
@@ -79,10 +95,10 @@ signals = ['s1.thetaPark_obs', 's1.BEMFa', 's1.BEMFb','s1.Iq_meas', 's1.Id_meas'
 m.setTrace(signals)
 
 m.setpar('s1.hfi_on', 0)
-m.setpar('motor.conf1.anglechoice', 1)
+m.setpar('motor.conf1.anglechoice', 0)
 
 m.tracebg()
-m.setpar('motor.state1.Iq_offset_SP',1)
+m.setpar('motor.state1.Iq_offset_SP',0.5)
 time.sleep(1.0)
 m.setpar('motor.state1.Iq_offset_SP',0.0)
 time.sleep(0.5)
@@ -231,15 +247,16 @@ m.setpar('s1.hfi_gain_int2', 5*2*pi) # 5*2*pi
 m.setpar('s1.hfi_V', hfi_v)
 m.setpar('s1.hfi_dir_int',0)
 m.setpar('s1.hfi_contout',0)
-m.setpar('motor.state1.Id_offset_SP',0.0)
+m.setpar('motor.state1.Id_offset_SP',0.3)
 m.setpar('s1.hfi_on', 1)
 m.setpar('c1.anglechoice', 3)
+m.setpar('motor.state1.Id_offset_SP',0.0)
 
 m.setpar( 's1.hfi_useforfeedback' , 1)
 m.setpar( 'motor.conf1.maxerror' , 1e6)
 # m.setpar( 'motor.conf1.maxerror' , 1e6)
 
-m.CL( 1, 1, J=0.0000045)
+m.CL( 2, 1, J=0.000007)
 
 time.sleep(0.2)
 m.setpar('motor.state1.Id_offset_SP',0.0)
@@ -249,32 +266,34 @@ m.setpar('motor.state1.Id_offset_SP',0.0)
 m.setpar( 'motor.conf1.Command' , 2)
 
 #%%  
-m.prepSP( 360/360*2*pi , 10 , 200 ,2500)
+m.prepSP( 360/360*2*np.pi , 4 , 20 ,2500)
 N = 1
 m.setpar('motor.state1.SPdir' , 1)
 m.setpar('motor.state1.spNgo' , N)
 
 while (m.getsig('motor.state1.spNgo') > 0 or m.getsig('motor.state1.REFstatus') > 0 ):
     bla = 1;
-time.sleep(5)
+time.sleep(0.3)
 m.setpar('motor.state1.SPdir' , 0)
 m.setpar('motor.state1.spNgo' , N)
 
 #%% Relative setpoints with trace
 # time.sleep(10)
-m.setpar('motor.state1.hfi_abs_pos' , 0)
-m.setpar('motor.state1.rmech' , 0)
-m.setpar('motor.state1.rmechoffset' , 0)
-m.setpar('motor.state1.ymech' , 0)
-m.setpar('motor.state1.emech' , 0)
+sleeptime = 0.001
+# m.setpar('motor.state1.hfi_abs_pos' , 0)
+# m.setpar('motor.state1.rmech' , 0)
+# m.setpar('motor.state1.rmechoffset' , 0)
+# m.setpar('motor.state1.ymech' , 0)
+# m.setpar('motor.state1.emech' , 0)
+# m.setpar('motor.state1.encoderPos1' , motor.state1.encoderPos1%(2*np.pi))
 
 
-v = 500
-a = 9000
-jerk = 3500000
+v = 200
+a = 18000
+jerk = 50000000
 # a = 2000 #Only motor 1
 
-motor.state1.Jload = J=0.0000085
+motor.state1.Jload = 0.000009
 
 m.setpar('motor.state1.velFF' , 0.000023)
 # m.setpar('motor.state2.velFF' , 0.00055)
@@ -290,29 +309,29 @@ m.tracebg(  )
 # time.sleep(0.1)
 
 m.rel( [ 360 , 360 ] , vel=v , acc = a, jerk = jerk)
-time.sleep(0.1)
+time.sleep(sleeptime)
 m.rel( [ -360 , -360] , vel=v , acc = a, jerk = jerk)
-time.sleep(0.1)
+time.sleep(sleeptime)
 m.rel( [ 360 , 360 ] , vel=v , acc = a, jerk = jerk)
-time.sleep(0.1)
+time.sleep(sleeptime)
 m.rel( [ -360 , -360 ] , vel=v , acc = a, jerk = jerk)
-time.sleep(0.1)
+time.sleep(sleeptime)
 m.rel( [ 360 , 360 ] , vel=v , acc = a, jerk = jerk)
-time.sleep(0.1)
+time.sleep(sleeptime)
 m.rel( [ -360 , -360] , vel=v , acc = a, jerk = jerk)
-time.sleep(0.1)
+time.sleep(sleeptime)
 m.rel( [ 360 , 360 ] , vel=v , acc = a, jerk = jerk)
-time.sleep(0.1)
+time.sleep(sleeptime)
 m.rel( [ -360 , -360 ] , vel=v , acc = a, jerk = jerk)
-time.sleep(0.1)
+time.sleep(sleeptime)
 m.rel( [ 360 , 360 ] , vel=v , acc = a, jerk = jerk)
-time.sleep(0.1)
+time.sleep(sleeptime)
 m.rel( [ -360 , -360] , vel=v , acc = a, jerk = jerk)
-time.sleep(0.1)
+time.sleep(sleeptime)
 m.rel( [ 360 , 360 ] , vel=v , acc = a, jerk = jerk)
-time.sleep(0.1)
+time.sleep(sleeptime)
 m.rel( [ -360 , -360 ] , vel=v , acc = a, jerk = jerk)
-time.sleep(0.1)
+time.sleep(sleeptime)
 
 # time.sleep(0.1)
 
@@ -320,7 +339,8 @@ df = m.stoptracegetdata()
 
 # df.filter(regex='sens').plot()
 
-
+df['motor.state1.ymech'] = df['motor.state1.ymech'] - df['motor.state1.ymech'][0]
+df['motor.state1.rmech'] = df['motor.state1.rmech'] - df['motor.state1.rmech'][0]
 df.filter(regex='state1..me|state1.me|state1.Iq').plot()
 
 # fig0, ax0 = plt.subplots()

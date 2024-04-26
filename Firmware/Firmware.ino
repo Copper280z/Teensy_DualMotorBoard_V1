@@ -74,6 +74,7 @@ void initmotor( mot_conf_t* m , mot_state_t* state ) {
   m->Lq_Iq_b = 3.1e-3;
   m->Ld_Id_m = 0;
   m->Ld_Id_b = 2.4e-3;
+  m->hfi_error_sat = 0.1;
 }
 
 void setup() {
@@ -613,7 +614,8 @@ void Control( mot_conf_t* confX , mot_state_t* stateX , Biquad **BiquadsX) {
   }
 
   stateX->Iq_SP = stateX->mechcontout / (1.5 * confX->N_pp * confX->Lambda_m );
-  stateX->Iq_SP += confX->cog_ff_gain * confX->cog_torque_ff[ size_t(stateX->thetaPark * 100 / (2 * M_PI))];
+
+
 }
 
 void Transforms( mot_conf_t* confX , mot_state_t* stateX , Biquad **BiquadsX)
@@ -755,6 +757,12 @@ void Transforms( mot_conf_t* confX , mot_state_t* stateX , Biquad **BiquadsX)
   stateX->Iq_SP += stateX->buffergain * stateX->streambuffer[ stateX->curbuffer ];
   stateX->Iq_SP += stateX->dist * stateX->Iq_distgain;
   stateX->Iq_SP += stateX->Iq_offset_SP;
+  // if (abs(stateX->Iq_SP)>0){
+  
+  stateX->Iq_SP += confX->cog_ff_gain * confX->cog_torque_ff[ size_t(fmod(abs(stateX->ymech), (2*M_PI)) * 4000 / (2 * M_PI)) ];
+
+    // stateX->Iq_SP +=(stateX->Iq_SP/abs(stateX->Iq_SP))*confX->cog_ff_gain * confX->cog_torque_ff[ size_t(fmod(stateX->hfi_abs_pos / confX->N_pp, (2*M_PI)) * 360 / (2 * M_PI)) ];
+  // }
 
   stateX->Id_SP = stateX->Id_offset_SP;
   stateX->Id_SP += stateX->dist * stateX->Id_distgain;
@@ -829,6 +837,8 @@ void Transforms( mot_conf_t* confX , mot_state_t* stateX , Biquad **BiquadsX)
       stateX->Lq_fit = confX->Lq_Iq_m * abs(stateX->Iq_meas) + confX->Lq_Iq_b;
       stateX->hfi_curangleest = 0.25f * atan2( -stateX->delta_iq  , stateX->delta_id - 0.5 * stateX->hfi_V * motor.conf.T * ( 1 / stateX->Lq_fit + 1 / stateX->Ld_fit ) );
     }
+    if (stateX->hfi_curangleest > confX->hfi_error_sat) { stateX->hfi_error=confX->hfi_error_sat;}
+    if (stateX->hfi_curangleest < -confX->hfi_error_sat) { stateX->hfi_error=-confX->hfi_error_sat;}
     if (stateX->hfi_use_lowpass) {
       LOWPASS( stateX->hfi_error , -stateX->hfi_curangleest , 0.19); //Negative feedback and lowpass (0.19 gives 2000 Hz at 60 kHz sampling: c = 1 - exp(-2000*2*pi*1/60000))
     }
@@ -836,6 +846,7 @@ void Transforms( mot_conf_t* confX , mot_state_t* stateX , Biquad **BiquadsX)
     {
       stateX->hfi_error = -stateX->hfi_curangleest; //Negative feedback
     }
+
     stateX->hfi_dir_int += motor.conf.T * stateX->hfi_error * stateX->hfi_gain_int2; //This the the double integrator - Roughly equivalent to the integral term in the PI controller
 
     stateX->hfi_contout += stateX->hfi_gain * motor.conf.T * stateX->hfi_error + stateX->hfi_dir_int; //This is the integrator and the double integrator
@@ -864,10 +875,10 @@ void Transforms( mot_conf_t* confX , mot_state_t* stateX , Biquad **BiquadsX)
     while ( stateX->hfi_dir < 0) {
       stateX->hfi_dir += 2 * M_PI;
     }
-    while ( stateX->hfi_dir_int >= 2 * M_PI) {
+    while ( stateX->hfi_dir_int >=  M_PI) {
       stateX->hfi_dir_int -= 2 * M_PI;
     }
-    while ( stateX->hfi_dir_int < 0) {
+    while ( stateX->hfi_dir_int < -M_PI) {
       stateX->hfi_dir_int += 2 * M_PI;
     }
   }
@@ -886,8 +897,10 @@ void Transforms( mot_conf_t* confX , mot_state_t* stateX , Biquad **BiquadsX)
 
   if (confX->ridethewave != 1 ) {
     if (stateX->OutputOn == true) {
+
       stateX->Id_e = stateX->Id_SP - stateX->Id_meas;
       stateX->Iq_e = stateX->Iq_SP - stateX->Iq_meas;
+      
     }
     else {
       stateX->Id_e = 0;

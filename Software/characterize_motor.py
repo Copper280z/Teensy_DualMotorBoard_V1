@@ -69,16 +69,16 @@ def measure_electrical_plant_open_loop(m, volts=1, Valpha_offset=0, Id_offset=0)
     f = dfout.index.values
     Pd = dfout['motor.state1.Id_meas'].values / dfout['motor.state1.Vd'].values
     Pq = dfout['motor.state1.Iq_meas'].values / dfout['motor.state1.Vq'].values
-    # Sd = dfout['motor.state1.Vd'].values
-    # Sq = dfout['motor.state1.Vq'].values
+    Sd = dfout['motor.state1.Vd'].values
+    Sq = dfout['motor.state1.Vq'].values
     
     plt.figure()
     m.bode( Pd , f, 'Measured D axis plant')
     m.bode( Pq , f, 'Measured Q axis plant')
      
-    # plt.figure(2)
-    # m.bode( 1 / Sd - 1 , f, 'Open loop D')
-    # m.bode( 1 / Sq - 1 , f, 'Open loop Q')
+    plt.figure(2)
+    m.bode( 1 / Sd - 1 , f, 'Open loop D')
+    m.bode( 1 / Sq - 1 , f, 'Open loop Q')
     
     Ld_arr = np.abs(1/(Pd * f * 2 * np.pi)) * 1e6
     Lq_arr = np.abs(1/(Pq * f * 2 * np.pi)) * 1e6
@@ -107,13 +107,13 @@ def measure_electrical_plant_open_loop(m, volts=1, Valpha_offset=0, Id_offset=0)
     return Ld/1e6, Lq/1e6
 
 est_params = {}
-R, max_amps = est_phase_resistance(m, v_min=0.3, v_max=1, n_steps=4)
+R, max_amps = est_phase_resistance(m, v_min=0.1, v_max=1, n_steps=4)
 est_params['R'] = R
 print(f'Measured Resistance: {R:.4f}')
 print(f'Observed current: {max_amps:.3f}')
 
 m.setpar('motor.state1.R', est_params['R'])
-Ld, Lq = measure_electrical_plant_open_loop(m, volts=R, Valpha_offset=0, Id_offset=0)
+Ld, Lq = measure_electrical_plant_open_loop(m, volts=R, Valpha_offset=0.0, Id_offset=0)
 print(f'Measured Ld: {Ld*1e6:.3f} uH')
 print(f'Measured Lq: {Lq*1e6:.3f} uH')
 est_params['Ld'] = Ld

@@ -70,7 +70,7 @@ for i in range( int(bufsize /N_samples_per_write) ):
 
 m.setpar('s1.runstream' , 1)
 # m.setpar('s2.runstream' , 1)
-m.setpar('s1.buffergain' , musicgain)
+m.setpar('s1.buffergain' , 1.5)
 # m.setpar('s2.buffergain' , musicgain)
 
 # m.vel([-20 , 20])
