@@ -18,12 +18,14 @@ plt.rcParams["figure.dpi"] = 200 #Use this with 4k screens
 
 
 def getVelocity(df):
-    dt = pd.Series(df.index).diff().fillna(method='bfill').fillna(method='ffill')
-    dt = dt.to_numpy()
+    # dt = pd.Series(df.index).diff().fillna(method='bfill').fillna(method='ffill')
+    dt = pd.Series(df.index).fillna(method='bfill').fillna(method='ffill')
+    dt = np.gradient(dt.to_numpy())
 
-    velocity = df['motor.state1.ymech'].diff().fillna(method='bfill')
-    velocity = velocity.rolling(50, center=True).mean()
-    velocity = np.nan_to_num(np.squeeze(velocity.to_numpy()))/dt
+    # velocity = df['motor.state1.ymech'].diff().fillna(method='bfill')
+    velocity = np.gradient(df['motor.state1.ymech'].fillna(method='bfill').to_numpy())
+    # velocity = velocity.rolling(50, center=True).mean()
+    velocity = np.nan_to_num(np.squeeze(velocity))/dt
     
     plt.figure()
     plt.title('velocity')
@@ -33,9 +35,12 @@ def getVelocity(df):
     return velocity
 
 def getAcceleration(df,velocity):
-    dt = pd.Series(df.index).diff().fillna(method='bfill').fillna(method='ffill')
-    dt = dt.to_numpy()
-    accel = np.diff(velocity)/dt[1:]
+    # dt = pd.Series(df.index).diff().fillna(method='bfill').fillna(method='ffill')
+    dt = pd.Series(df.index).fillna(method='bfill').fillna(method='ffill')
+    dt = np.gradient(dt.to_numpy())
+    
+    # dt = dt.to_numpy()
+    accel = np.gradient(velocity)/dt
 
     return accel
 
@@ -115,41 +120,32 @@ def measure(Ic):
     theta = np.squeeze(df['angle'].to_numpy())
     idx = np.argsort(theta)
     theta = theta[idx]
-    velocity=velocity[idx][100:-100]
+    velocity=velocity[idx]#[100:-100]
+    
+    accel = getAcceleration(df,velocity)
     
     angle_bins = np.linspace(0,2*np.pi,4000)
     
-    digitized = np.digitize(theta[100:-100], angle_bins)
-    bin_means = [velocity[digitized == i].mean() for i in range(0, len(angle_bins))]
-    bin_means = np.nan_to_num(bin_means,nan=np.nanmean(bin_means))
-    # bin_means[0] = bin_means[1]
+    digitized = np.digitize(theta, angle_bins)
+    velocity_bin_means = [velocity[digitized == i].mean() for i in range(0, len(angle_bins))]
+    velocity_bin_means = np.nan_to_num(velocity_bin_means,nan=np.nanmean(velocity_bin_means))
     
-    f = np.fft.rfft(bin_means)
-    fit = np.fft.irfft(f[:fft_bins], len(angle_bins))
+    vf = np.fft.rfft(velocity_bin_means)
+    velocity_fit = np.fft.irfft(vf[:fft_bins], len(angle_bins))
     
-    # N=len(f)
-    # k2 = np.zeros(N)
-    # if ((N%2)==0):
-    #     #-even number                                                                                   
-    #     for i in range(1,N//2):
-    #         k2[i]=i
-    #         k2[N-i]=-i
-    # else:
-    #     #-odd number                                                                                    
-    #     for i in range(1,(N-1)//2):
-    #         k2[i]=i
-    #         k2[N-i]=-i
+    accel_bin_means = [accel[digitized == i].mean() for i in range(0, len(angle_bins))]
+    accel_bin_means = np.nan_to_num(accel_bin_means,nan=np.nanmean(accel_bin_means))
     
-    # dfit = np.real(np.fft.ifft((1j*k2*f)[:fft_bins],2*len(f)-1))
-    dfit = np.diff(fit)/np.diff(angle_bins)
-    dfit = np.concatenate([np.array([dfit[0]]),dfit])
+    af = np.fft.rfft(accel_bin_means)
+    accel_fit = np.fft.irfft(af[:fft_bins], len(angle_bins))
 
     ret = {'raw_angle':theta,
            'raw_velocity':velocity,
            'angle':angle_bins,
-           'velocity':bin_means,
-           'filtered velocity':fit,
-           'accel':dfit}
+           'velocity':velocity_bin_means,
+           'filtered velocity':velocity_fit,
+           'accel':accel,
+           'filtered_accel': accel_fit}
     return ret
 
 m = tc.Motor(  )
@@ -207,11 +203,14 @@ fft_bins = 75
 Icog = np.zeros(4000)
 print('searching for Ic_min')
 
-J =  0.00002
+J =  0.00002*2.2
 Km = 0.019
 
-Ic_min = [0.03013158]
-Ic_min_n = [-0.03013158]
+Ic_min = [0.028]
+# Ic_min = [0.021]
+m.setpar('motor.state1.Iq_offset_SP',Ic_min[0])
+
+# Ic_min_n = [-0.03013158]
 # Ic_min = [find_min(Imin_start, n_points, 1)]
 # Ic_min_n = [find_min(Imin_start, n_points, -1)]
 # Ic_min = Ic_min + Ic_max/(n_points)
@@ -219,6 +218,10 @@ Ic_min_n = [-0.03013158]
 mp = []
 for I in Ic_min:
     mp.append(measure(I))
+
+mn = []
+for I in Ic_min:
+    mn.append(measure(-I))
     
 m.setpar('motor.state1.Iq_offset_SP',Ic_min[0])
 
@@ -229,16 +232,22 @@ for meas_p in mp:
     plt.plot(meas_p['angle'], J*meas_p['accel']/Km)
 plt.show()
 meas_p = mp[0]
+meas_n = mn[0]
+
+mean_accel = np.mean([meas_p['accel'], -meas_n['accel']], axis=0)
 
 plt.figure()
 plt.title('Velocity at minimum positive Iq')
 plt.plot(meas_p['angle'], meas_p['velocity'], label="velocity")
 plt.plot(meas_p['angle'], meas_p['filtered velocity'],'r', label="filtered velocity")
+plt.plot(meas_n['angle'], -meas_n['filtered velocity'],'g', label="-filtered velocity")
 plt.plot(meas_p['angle'], meas_p['accel'],'m', label="accel")
+plt.plot(meas_p['angle'], -meas_n['accel'],'c', label="-accel")
+plt.plot(meas_p['angle'], mean_accel,'b', label="mean accel")
 plt.legend()
 plt.show()
 
-Icog = J*meas_p['accel']/Km
+Icog = J*mean_accel/Km
 plt.figure()
 plt.title('Cogging correction current')
 plt.plot(Icog)
@@ -251,4 +260,4 @@ if not np.all(np.isnan(Icog)):
 
     for i,Ic in enumerate(np.roll(Icog,0)):
         m.setparpart('motor.conf1.cog_torque_ff', Ic, i)
-    m.setpar('motor.conf1.cog_ff_gain', -0)
+    m.setpar('motor.conf1.cog_ff_gain', -1)
