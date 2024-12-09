@@ -212,7 +212,7 @@ Imax = 1.5*Ic_max
 
 #%%
 
-m.setpar('motor.conf1.cog_ff_gain',-1.0)
+m.setpar('motor.conf1.cog_ff_gain',0.0)
 
 
 
